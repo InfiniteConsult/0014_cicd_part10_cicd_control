@@ -20,6 +20,11 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
+dependencies = [
+    "python-dotenv",
+    "PyYAML"
+]
+
 [project.optional-dependencies]
 test = [
     "pytest",
