@@ -23,7 +23,8 @@ classifiers = [
 dependencies = [
     "python-dotenv",
     "PyYAML",
-    "wheel"
+    "wheel",
+    "build"
 ]
 
 [project.optional-dependencies]
