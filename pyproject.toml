@@ -1,0 +1,34 @@
+# pyproject.toml
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cicd_control"
+version = "0.1.0"
+authors = [
+    { name = "Infinite Consulting", email = "info@infcon.co.za" },
+]
+description = "Control package for the Sovereign Software Factory series"
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov",
+    "mypy"
+]
+
+[projects.scripts]
+cicd-ctl="cicd_control.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
