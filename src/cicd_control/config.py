@@ -161,20 +161,12 @@ class ConfigLoader:
 
         # Continue processing from environment
         # Dotenv won't overwrite keys already in the environment, ensuring precedence.
-        config_dict: dict[str, ServiceConfig] = asdict(config)
-        k: str
-        for k in config_dict:
-            token: str | None = os.environ.get(k.upper() + "_TOKEN", None)
-            if token is not None:
-                getattr(config, k).token = token
+        for name, service in vars(config).items():
+            env_token = os.environ.get(f"{name.upper()}_TOKEN")
+            if env_token:
+                service.token = env_token
 
-        # Check for any tokens that haven't been filled in
-        config_dict = asdict(config)
-        config_iterator: ItemsView[str, ServiceConfig] = config_dict.items()
-
-        v: dict[str, dict[str, str]]
-        for k, v in config_iterator:
-            if v["token"] is None:
-                raise CicdConfigError(f"No token found for {k}")
+            if service.token is None:
+                raise CicdConfigError(f"No token found for {name}")
 
         return config
