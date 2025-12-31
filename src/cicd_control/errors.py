@@ -43,3 +43,9 @@ class CicdConflictError(CicdApiError):
 class CicdServerError(CicdApiError):
     """500+ Server Errors."""
     pass
+
+# --- Configuration (The Environment) ---
+
+class CicdConfigError(CicdError):
+    """All errors related to loading configuration files."""
+    pass
