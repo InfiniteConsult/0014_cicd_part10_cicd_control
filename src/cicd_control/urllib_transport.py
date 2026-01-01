@@ -20,11 +20,7 @@ class UrllibTransport:
             headers: dict[str, str] | None = None,
             body: bytes | None = None
     ) -> HttpResponse:
-        request = Request(method=method, url=url, headers=headers or {}, data=body)
-        status_code: int
-        response_headers: dict[str, str]
-        raw_response_body: bytes
-        response_body: bytes | dict[str, Any]
+        request: Request = Request(method=method, url=url, headers=headers or {}, data=body)
         http_e: HTTPError
         url_e: URLError
 
