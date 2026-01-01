@@ -57,9 +57,11 @@ pipeline {
                     serverId: 'artifactory',
                     spec: """{
                         "files": [
-                            "pattern": "dist/*",
-                            "target": "generic-local/cicd-control/${BUILD_NUMBER}/",
-                            "flat": "true"
+                            {
+                                "pattern": "dist/*",
+                                "target": "generic-local/cicd-control/${BUILD_NUMBER}/",
+                                "flat": "true"
+                            }
                         ]
                     }""",
                     failNoOp: true,
