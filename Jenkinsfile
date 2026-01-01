@@ -14,7 +14,7 @@ pipeline {
         stage('Test & Coverage') {
             steps {
                 echo '--- Running Tests ---'
-                sh '. .venv/bin/activate && pytest --cov=. --cov-report=xml tests/'
+                sh '. .venv/bin/activate && pytest --cov=. --cov-report=xml:coverage.xml tests/ && ls'
             }
         }
 
