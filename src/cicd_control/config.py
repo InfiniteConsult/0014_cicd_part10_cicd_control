@@ -161,7 +161,7 @@ class ConfigLoader:
         # Continue processing from environment
         # Dotenv won't overwrite keys already in the environment, ensuring precedence.
         for name, service in vars(config).items():
-            env_token = os.environ.get(f"{name.upper()}_TOKEN")
+            env_token = os.environ.get(f"{name.upper()}_TOKEN", None)
             if env_token:
                 service.token = env_token
 
