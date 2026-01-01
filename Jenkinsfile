@@ -7,7 +7,7 @@ pipeline {
         stage('Setup & Build') {
             steps {
                 echo '--- Building Project ---'
-                sh 'python3.12 -m venv .venv && . .venv/bin/activate && python3 -m pip install .[test]'
+                sh 'python3.12 -m venv .venv && . .venv/bin/activate && python3 -m pip install --editable .[test]'
             }
         }
 
