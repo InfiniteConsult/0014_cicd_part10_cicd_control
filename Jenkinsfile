@@ -14,7 +14,7 @@ pipeline {
         stage('Test & Coverage') {
             steps {
                 echo '--- Running Tests ---'
-                sh '. .venv/bin/activate && pytest --cov=src --cov-report=xml'
+                sh '. .venv/bin/activate && pytest --cov=src/cicd_control --cov-report=xml tests/'
             }
         }
 
