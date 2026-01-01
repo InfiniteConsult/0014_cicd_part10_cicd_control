@@ -4,8 +4,7 @@ Use :class:`ConfigLoader` to generate a :class:`GlobalConfig` for the CI/CD cont
 import os
 from os import PathLike
 from pathlib import Path
-from dataclasses import dataclass, asdict
-from collections.abc import ItemsView
+from dataclasses import dataclass
 
 
 from dotenv import load_dotenv
