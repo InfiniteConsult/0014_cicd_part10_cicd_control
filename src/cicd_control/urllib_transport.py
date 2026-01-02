@@ -13,6 +13,14 @@ from cicd_control.errors import CicdDnsError, CicdTlsError, CicdConnectionError,
 
 
 class UrllibTransport:
+    def __init__(self, context: ssl.SSLContext | None) -> None:
+        self.context: ssl.SSLContext
+        if context is None:
+            self.context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+            self.context.minimum_version = ssl.TLSVersion.TLSv1_3
+        else:
+            self.context = context
+
     def request(
             self,
             method: str,
