@@ -12,10 +12,10 @@ from urllib.request import Request, urlopen
 from conftest import MockServer
 
 
-def test_mock_server_get(mock_server, client_context):
+def test_mock_server_get(mock_server: MockServer, client_context: ssl.SSLContext):
     addr: str
     port: int
-    addr, port =mock_server.get_server_address()
+    addr, port = mock_server.get_server_address()
 
     req: Request = Request(f"https://{addr}:{port}")
 
@@ -32,10 +32,10 @@ def test_mock_server_get(mock_server, client_context):
         assert response.status == 200
 
 
-def test_mock_server_post(mock_server, client_context):
+def test_mock_server_post(mock_server: MockServer, client_context: ssl.SSLContext):
     addr: str
     port: int
-    addr, port =mock_server.get_server_address()
+    addr, port = mock_server.get_server_address()
 
     req: Request = Request(f"https://{addr}:{port}", data=json.dumps({"hello": "world"}).encode())
 
