@@ -80,7 +80,6 @@ class MockServer:
         Binds and listens for incoming connections. To handle connections, start the :meth:`handle_accept` method on a
         new thread.
 
-
         :param Path key_path: Path to the private key file.
         :param Path cert_path: Path to the public key file.
         """
@@ -101,7 +100,7 @@ class MockServer:
 
     def get_server_address(self) -> tuple[str, int]:
         """
-        Returns the tuple (addr, port), allowing clients to bind to the randomly selected port that the servers
+        Returns the tuple (addr, port), allowing clients to bind to the randomly selected port that the server
         is listening on.
 
         :rtype: tuple[str, int]
@@ -207,6 +206,7 @@ class MockServer:
     @staticmethod
     def _check_header_length(full_response: bytes) -> tuple[int, bool]:
         """
+        Checks if we have received the full set of headers.
 
         :param bytes full_response: The client's request.
         :rtype: tuple[int, bool]
