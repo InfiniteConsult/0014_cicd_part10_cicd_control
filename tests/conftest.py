@@ -89,6 +89,7 @@ class MockServer:
         self.port: int
         self.addr, self.port = self.socket.getsockname()
         self.socket.listen(5)
+        self.socket.settimeout(5)
 
         self.ssl_ctx: ssl.SSLContext= ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         self.ssl_ctx.load_cert_chain(cert_path, key_path)
@@ -127,7 +128,11 @@ class MockServer:
         """
         new_socket: socket.socket
         conn_stream: ssl.SSLSocket
-        new_socket, _ = self.socket.accept()
+        try:
+            new_socket, _ = self.socket.accept()
+        except TimeoutError:
+            return
+
         conn_stream = self.ssl_ctx.wrap_socket(new_socket, server_side=True)
         try:
             assert self.deal_with_client is not None
