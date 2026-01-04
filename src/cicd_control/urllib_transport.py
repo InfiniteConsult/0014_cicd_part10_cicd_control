@@ -34,7 +34,7 @@ class UrllibTransport:
 
         try:
             response: HTTPResponse
-            with urlopen(request) as response:
+            with urlopen(request, context=self.context) as response:
                 return self._extract_http_response(response)
 
         except HTTPError as http_e:
