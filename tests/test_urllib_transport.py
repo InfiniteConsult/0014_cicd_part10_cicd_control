@@ -1,5 +1,6 @@
 import socket
 import ssl
+import threading
 import time
 
 
@@ -126,10 +127,7 @@ class TestUrllibTransport:
         with pytest.raises(CicdConnectionError, match="Connection failed:"):
             transport.request("GET", url)
 
-        addr: str
-        port: int
-        addr, port = mock_server.get_server_address()
-        url = f"https://{addr}:{port}"
+        url: str = get_mock_server_url(mock_server)
         with pytest.raises(CicdTlsError, match="SSL Handshake failed: "):
             transport.request("GET", url)
 
@@ -159,10 +157,7 @@ class TestUrllibTransport:
             sock.sendall(b"NOT_HTTP_PROTOCOL_GARBAGE\r\n\r\n")
         mock_server.set_server_callback(callback)
 
-        addr: str
-        port: int
-        addr, port = mock_server.get_server_address()
-        url = f"https://{addr}:{port}"
+        url: str = get_mock_server_url(mock_server)
         transport = UrllibTransport(client_context)
 
         with pytest.raises(CicdTransportError, match="General error: NOT_HTTP_PROTOCOL_GARBAGE"):
