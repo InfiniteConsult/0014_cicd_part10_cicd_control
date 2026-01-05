@@ -49,7 +49,7 @@ class UrllibTransport:
                 case socket.gaierror():
                     raise CicdDnsError(f"DNS resolution failed for {url}") from url_e
 
-                case ConnectionRefusedError() | socket.timeout():
+                case ConnectionRefusedError() | socket.timeout() | ConnectionResetError():
                     raise CicdConnectionError(f"Connection failed: {url_e.reason}") from url_e
 
                 case ssl.SSLError():

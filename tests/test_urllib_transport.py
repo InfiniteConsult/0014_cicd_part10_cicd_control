@@ -157,7 +157,7 @@ class TestUrllibTransport:
         transport = UrllibTransport(client_context)
         url = "https://example.com"
 
-        unhandled_reason = ConnectionResetError("Connection reset by peer")
+        unhandled_reason = BrokenPipeError("Connection reset by peer")
 
         with patch("cicd_control.urllib_transport.urlopen", side_effect=URLError(reason=unhandled_reason)):
             with pytest.raises(CicdTransportError, match=f"Network error: {unhandled_reason}"):
