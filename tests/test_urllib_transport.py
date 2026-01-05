@@ -1,14 +1,13 @@
+import socket
 import ssl
-
-
-from typing import Any
+import time
 
 
 import pytest
 
 
-from cicd_control.transport import HttpResponse
 from cicd_control.urllib_transport import UrllibTransport, HttpResponse
+from cicd_control.errors import CicdDnsError, CicdTlsError, CicdConnectionError, CicdTransportError
 
 
 from conftest import MockServer
@@ -80,7 +79,7 @@ expected_and_http_error_paths: list[tuple[bytes, bytes, bytes, int, bytes | dict
 
 class TestUrllibTransport:
     def test_init(self, client_context):
-        transport = UrllibTransport()
+        transport: UrllibTransport = UrllibTransport()
         assert transport.context is not None
         assert transport.context != client_context
 
@@ -102,16 +101,69 @@ class TestUrllibTransport:
             expected_status,
             expected_body
     ):
-        full_response = status_line + b"\r\n" + headers + b"\r\n\r\n" + body_bytes
+        full_response: bytes = status_line + b"\r\n" + headers + b"\r\n\r\n" + body_bytes
 
         set_single_response_callback(mock_server, full_response)
 
-        url = get_mock_server_url(mock_server)
-        transport = UrllibTransport(client_context)
-        response = transport.request("GET", url)
+        url: str = get_mock_server_url(mock_server)
+        transport: UrllibTransport = UrllibTransport(client_context)
+        response: HttpResponse = transport.request("GET", url)
         cleaned_headers: dict[str, str] = {
             k.decode(): v.decode().strip() for k, v in [x.split(b":") for x in headers.split(b"\r\n")]
         }
         assert response.status_code == expected_status
         assert response.body == expected_body
         assert response.headers == cleaned_headers
+
+    def test_connection_failures(self, mock_server, client_context):
+        transport: UrllibTransport = UrllibTransport()
+
+        url: str = "https://this-domain-does-not-exist.invalid"
+        with pytest.raises(CicdDnsError, match=f"DNS resolution failed for {url}"):
+            transport.request("GET", url)
+
+        url = "https://localhost:0"
+        with pytest.raises(CicdConnectionError, match="Connection failed:"):
+            transport.request("GET", url)
+
+        addr: str
+        port: int
+        addr, port = mock_server.get_server_address()
+        url = f"https://{addr}:{port}"
+        with pytest.raises(CicdTlsError, match="SSL Handshake failed: "):
+            transport.request("GET", url)
+
+        original_timeout: float | None= socket.getdefaulttimeout()
+        if original_timeout is None:
+            original_timeout = 5.0
+
+        socket.setdefaulttimeout(0.1)
+        def callback(server: MockServer, sock: ssl.SSLSocket):
+            _: bytes = server.read_full_message(sock)
+            time.sleep(0.2)
+            sock.sendall(b"HTTP/1.1 200 OK\r\n\r\n")
+
+        mock_server.set_server_callback(callback)
+        transport = UrllibTransport(client_context)
+        with pytest.raises(CicdConnectionError, match="The handshake operation timed out"):
+            transport.request("GET", url)
+        socket.setdefaulttimeout(original_timeout)
+
+        with pytest.raises(CicdTransportError, match="Request error unknown url type: '#! /usr/bin/env python'"):
+            transport.request("GET", "#! /usr/bin/env python")
+
+
+    def test_protocol_violation(self, mock_server, client_context):
+        def callback(server: MockServer, sock: ssl.SSLSocket):
+            server.read_full_message(sock)
+            sock.sendall(b"NOT_HTTP_PROTOCOL_GARBAGE\r\n\r\n")
+        mock_server.set_server_callback(callback)
+
+        addr: str
+        port: int
+        addr, port = mock_server.get_server_address()
+        url = f"https://{addr}:{port}"
+        transport = UrllibTransport(client_context)
+
+        with pytest.raises(CicdTransportError, match="General error: NOT_HTTP_PROTOCOL_GARBAGE"):
+            transport.request("GET", url)

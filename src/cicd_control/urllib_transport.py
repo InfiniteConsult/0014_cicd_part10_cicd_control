@@ -28,7 +28,11 @@ class UrllibTransport:
             headers: dict[str, str] | None = None,
             body: bytes | None = None
     ) -> HttpResponse:
-        request: Request = Request(method=method, url=url, headers=headers or {}, data=body)
+        try:
+            request: Request = Request(method=method, url=url, headers=headers or {}, data=body)
+        except ValueError as ve:
+            raise CicdTransportError(f"Request error {ve}") from ve
+
         http_e: HTTPError
         url_e: URLError
 
@@ -53,6 +57,9 @@ class UrllibTransport:
 
                 case _:
                     raise CicdTransportError(f"Network error: {url_e.reason}") from url_e
+
+        except Exception as err:
+            raise CicdTransportError(f"General error: {err}") from err
 
 
     @staticmethod

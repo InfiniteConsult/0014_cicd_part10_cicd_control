@@ -236,6 +236,17 @@ class MockServer:
 
         return header_bytes, header_end_found
 
+    def start_thread(self) -> threading.Thread:
+        """
+        Starts the accept loop if you need to handle subsequent connections and returns a thread handle that can be
+        joined later.
+
+        :rtype: threading.Thread
+        :return: The thread handle of the new accept loop.
+        """
+        handle: threading.Thread = threading.Thread(target=self.handle_accept)
+        handle.start()
+        return handle
 
 @pytest.fixture(scope="function")
 def mock_server() -> Generator[MockServer, Any, None]:
@@ -246,8 +257,7 @@ def mock_server() -> Generator[MockServer, Any, None]:
     :return: The mock server fixture to which test logic can be assigned.
     """
     server: MockServer = MockServer(KEY_PATH, CERT_PATH)
-    handle: threading.Thread = threading.Thread(target=server.handle_accept)
-    handle.start()
+    handle = server.start_thread()
     yield server
     handle.join()
 
