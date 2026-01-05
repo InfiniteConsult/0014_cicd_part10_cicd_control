@@ -1,7 +1,10 @@
 import socket
 import ssl
-import threading
 import time
+
+
+from urllib.error import URLError
+from unittest.mock import patch
 
 
 import pytest
@@ -150,6 +153,15 @@ class TestUrllibTransport:
         with pytest.raises(CicdTransportError, match="Request error unknown url type: '#! /usr/bin/env python'"):
             transport.request("GET", "#! /usr/bin/env python")
 
+    def test_unhandled_url_error(self, client_context):
+        transport = UrllibTransport(client_context)
+        url = "https://example.com"
+
+        unhandled_reason = ConnectionResetError("Connection reset by peer")
+
+        with patch("cicd_control.urllib_transport.urlopen", side_effect=URLError(reason=unhandled_reason)):
+            with pytest.raises(CicdTransportError, match=f"Network error: {unhandled_reason}"):
+                transport.request("GET", url)
 
     def test_protocol_violation(self, mock_server, client_context):
         def callback(server: MockServer, sock: ssl.SSLSocket):
