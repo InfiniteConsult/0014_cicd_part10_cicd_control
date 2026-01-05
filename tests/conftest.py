@@ -133,13 +133,18 @@ class MockServer:
         except TimeoutError:
             return
 
-        conn_stream = self.ssl_ctx.wrap_socket(new_socket, server_side=True)
         try:
+            conn_stream = self.ssl_ctx.wrap_socket(new_socket, server_side=True)
             assert self.deal_with_client is not None
             self.deal_with_client(self, conn_stream)
+        except ssl.SSLError:
+            pass
         finally:
-            conn_stream.shutdown(socket.SHUT_RDWR)
-            conn_stream.close()
+            try:
+                conn_stream.shutdown(socket.SHUT_RDWR)
+                conn_stream.close()
+            except UnboundLocalError:
+                pass
 
     def read_full_message(self, conn_stream: ssl.SSLSocket) -> bytes:
         """
