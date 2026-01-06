@@ -1,15 +1,8 @@
-from typing import Protocol, Any
-from dataclasses import dataclass
+from typing import Protocol
 
 
-@dataclass
-class HttpResponse:
-    """
-    Data container for a completed HTTP request.
-    """
-    status_code: int
-    headers: dict[str, str]
-    body: bytes | dict[str, Any]
+from cicd_control.transports.response import HttpResponse
+
 
 
 class HttpTransport(Protocol):

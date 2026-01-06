@@ -8,7 +8,7 @@ from urllib.error import HTTPError, URLError
 from http.client import HTTPResponse
 
 
-from cicd_control.transport import HttpResponse
+from cicd_control.transports.response import HttpResponse
 from cicd_control.errors import CicdDnsError, CicdTlsError, CicdConnectionError, CicdTransportError
 
 
