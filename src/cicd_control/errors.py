@@ -152,3 +152,13 @@ class CicdHeistError(CicdServiceError):
 class CicdIntegrationError(CicdServiceError):
     """Failed to write two services together"""
     pass
+
+# --- Logging (The Observability Layer) ---
+
+class LoggingError(CicdError):
+    """Base for logging failures."""
+    pass
+
+class InvalidSecretError(LoggingError):
+    """Invalid secret provided. Raised from redaction filter"""
+    pass
