@@ -2,10 +2,12 @@ import os
 
 
 # --- Filesystem ---
+# Override as needed from seed.yaml
 
 VAULT_FILENAME: str = "cicd_vault.db" # Encrypted passwords and configs
-DEFAULT_HOST_DATA_PATH: str = os.path.expanduser("~/cicd/data") # Overridable by seed.yaml
-CONFIG_DIR_NAME: str = os.path.expanduser("~/cicd/config") # Overridable by seed.yaml
+DEFAULT_HOST_DATA_PATH: str = os.path.expanduser("~/cicd/data")
+CONFIG_DIR_NAME: str = os.path.expanduser("~/cicd/config")
+LOG_DIR_NAME: str = os.path.expanduser("~/cicd/logs")
 
 # --- Cryptography ---
 KDF_ALGORITHM: str = "sha256"

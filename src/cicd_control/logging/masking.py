@@ -19,6 +19,7 @@ class RedactionFilter(Filter):
         if not isinstance(record.msg, str):
             return True
 
+        secret: str
         for secret in self.secrets:
             if secret in record.msg:
                 record.msg = record.msg.replace(secret, "[REDACTED]")
