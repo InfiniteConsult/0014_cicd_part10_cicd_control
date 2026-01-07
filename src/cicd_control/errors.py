@@ -101,6 +101,10 @@ class CicdKeyDerivationError(CicdEncryptionError):
     """Failed to derive AES key from password"""
     pass
 
+class CicdSecretNotFoundError(CicdVaultError):
+    """The requested secret was not found in the database"""
+    pass
+
 # --- Infrastructure Layer (The Environment) ---
 
 class CicdInfraError(CicdError):
