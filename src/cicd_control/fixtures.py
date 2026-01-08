@@ -115,7 +115,7 @@ class MockServer:
             try:
                 conn_stream.shutdown(socket.SHUT_RDWR)
                 conn_stream.close()
-            except UnboundLocalError:
+            except (UnboundLocalError, OSError):
                 pass
 
     def read_full_message(self, conn_stream: ssl.SSLSocket) -> bytes:

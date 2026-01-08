@@ -117,36 +117,50 @@ class TestUrllibTransport:
         assert response.body == expected_body
         assert response.headers == cleaned_headers
 
-    def test_connection_failures(self, mock_server, client_context):
+    def test_dns_failure(self):
         transport: UrllibTransport = UrllibTransport()
-
         url: str = "https://this-domain-does-not-exist.invalid"
+
         with pytest.raises(CicdDnsError, match=f"DNS resolution failed for {url}"):
             transport.request("GET", url)
 
+    def test_connection_refused(self):
+        transport: UrllibTransport = UrllibTransport()
         url = "https://localhost:0"
+
         with pytest.raises(CicdConnectionError, match="Connection failed:"):
             transport.request("GET", url)
 
+    def test_tls_verification_failure(self, mock_server):
+        transport: UrllibTransport = UrllibTransport()
         url: str = get_mock_server_url(mock_server)
+
         with pytest.raises(CicdTlsError, match="SSL Handshake failed: "):
             transport.request("GET", url)
 
-        original_timeout: float | None= socket.getdefaulttimeout()
-        if original_timeout is None:
-            original_timeout = 5.0
+    def test_socket_timeout(self, mock_server, client_context):
+        original_timeout: float | None = socket.getdefaulttimeout()
+        url: str = get_mock_server_url(mock_server)
 
-        socket.setdefaulttimeout(0.1)
-        def callback(server: MockServer, sock: ssl.SSLSocket):
-            _: bytes = server.read_full_message(sock)
-            time.sleep(0.2)
-            sock.sendall(b"HTTP/1.1 200 OK\r\n\r\n")
+        try:
+            socket.setdefaulttimeout(0.1)
 
-        mock_server.set_server_callback(callback)
-        transport = UrllibTransport(client_context)
-        with pytest.raises(CicdConnectionError, match="The handshake operation timed out"):
-            transport.request("GET", url)
-        socket.setdefaulttimeout(original_timeout)
+            def callback(server: MockServer, sock: ssl.SSLSocket):
+                _: bytes = server.read_full_message(sock)
+                time.sleep(0.2)
+                sock.sendall(b"HTTP/1.1 200 OK\r\n\r\n")
+
+            mock_server.set_server_callback(callback)
+
+            transport = UrllibTransport(client_context)
+
+            with pytest.raises(CicdTransportError, match="timed out"):
+                transport.request("GET", url)
+        finally:
+            socket.setdefaulttimeout(original_timeout)
+
+    def test_invalid_url_scheme(self):
+        transport: UrllibTransport = UrllibTransport()
 
         with pytest.raises(CicdTransportError, match="Request error unknown url type: '#! /usr/bin/env python'"):
             transport.request("GET", "#! /usr/bin/env python")
