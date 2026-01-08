@@ -1,13 +1,20 @@
 import logging
 import json
 import sys
+
+
+from pathlib import Path
+from logging import LogRecord, Logger
 from unittest.mock import patch
-
-
 from logging.handlers import RotatingFileHandler
+from typing import AnyStr
 
 
 import pytest
+
+
+from mypy.dmypy_util import TracebackType
+from _pytest.capture import CaptureResult
 
 
 from cicd_control.logging.config import JsonFormatter, configure_logging
@@ -20,10 +27,10 @@ def clean_logging():
     Fixture to reset the Root Logger before and after tests.
     This prevents 'handler pollution' where one test's config affects another.
     """
-    logger = logging.getLogger()
+    logger: Logger = logging.getLogger()
 
-    original_handlers = logger.handlers[:]
-    original_filters = logger.filters[:]
+    original_handlers: list[logging.Handler] = logger.handlers[:]
+    original_filters: list[logging.Filter] = logger.filters[:]
 
     # Clear existing
     logger.handlers = []
@@ -45,7 +52,7 @@ def clean_logging():
 class TestJsonFormatter:
     def test_format_structure(self):
         """Verify the JSON structure contains all required ELK fields."""
-        formatter = JsonFormatter()
+        formatter: JsonFormatter = JsonFormatter()
 
         # Create a dummy log record
         record = logging.LogRecord(
@@ -58,8 +65,8 @@ class TestJsonFormatter:
             exc_info=None
         )
 
-        json_output = formatter.format(record)
-        log_dict = json.loads(json_output)
+        json_output: str = formatter.format(record)
+        log_dict: dict[str, str | int] = json.loads(json_output)
 
         # Assertions
         assert log_dict["message"] == "User admin logged in"
@@ -70,14 +77,14 @@ class TestJsonFormatter:
 
     def test_format_exception(self):
         """Verify stack traces are captured in the JSON object."""
-        formatter = JsonFormatter()
+        formatter: JsonFormatter = JsonFormatter()
 
         try:
             1 / 0
         except ZeroDivisionError:
-            exc_info = sys.exc_info()
-
-        record = logging.LogRecord(
+            exc_info: tuple[type[BaseException], BaseException, TracebackType] | tuple[None, None, None] = sys.exc_info()
+        
+        record: LogRecord = logging.LogRecord(
             name="test_error",
             level=logging.ERROR,
             pathname=__file__,
@@ -87,8 +94,8 @@ class TestJsonFormatter:
             exc_info=exc_info
         )
 
-        json_output = formatter.format(record)
-        log_dict = json.loads(json_output)
+        json_output: str = formatter.format(record)
+        log_dict: dict[str, str | int] = json.loads(json_output)
 
         assert log_dict["message"] == "Crash occurred"
         assert "stack_trace" in log_dict
@@ -100,18 +107,18 @@ class TestLoggingConfig:
 
     def test_configure_logging_wiring(self, tmp_path):
         with patch("cicd_control.logging.config.LOG_DIR_NAME", str(tmp_path)):
-            filter_instance = configure_logging()
+            filter_instance: RedactionFilter = configure_logging()
 
-        root = logging.getLogger()
+        root: Logger = logging.getLogger()
 
         assert isinstance(filter_instance, RedactionFilter)
 
-        stream_handler = next(
+        stream_handler: logging.Handler = next(
             h for h in root.handlers
             if type(h) is logging.StreamHandler
         )
 
-        file_handler = next(
+        file_handler: RotatingFileHandler = next(
             h for h in root.handlers
             if isinstance(h, logging.handlers.RotatingFileHandler)
         )
@@ -127,24 +134,24 @@ class TestLoggingConfig:
 
     def test_end_to_end_redaction_and_output(self, tmp_path, capsys):
         with patch("cicd_control.logging.config.LOG_DIR_NAME", str(tmp_path)):
-            redaction_filter = configure_logging()
+            redaction_filter: RedactionFilter = configure_logging()
 
-        secret = "super_secret_password" # NOSONAR
+        secret: str = "super_secret_password" # NOSONAR
         redaction_filter.add_secret(secret)
 
-        logger = logging.getLogger("test_e2e")
+        logger: Logger = logging.getLogger("test_e2e")
         logger.info(f"Connecting with {secret} now.")
 
-        captured = capsys.readouterr()
+        captured: CaptureResult[AnyStr] = capsys.readouterr()
         assert "[REDACTED]" in captured.out
         assert secret not in captured.out
         assert "INFO: Connecting with [REDACTED] now." in captured.out
 
-        log_file = tmp_path / "cicd_control.log"
+        log_file: Path = tmp_path / "cicd_control.log"
         assert log_file.exists()
 
-        content = log_file.read_text()
-        log_entry = json.loads(content)
+        content: str = log_file.read_text()
+        log_entry: dict[str, str | int] = json.loads(content)
 
         assert log_entry["message"] == "Connecting with [REDACTED] now."
         assert log_entry["level"] == "INFO"
