@@ -38,7 +38,6 @@ def configure_logging() -> RedactionFilter:
     logger.setLevel(logging.DEBUG)
 
     redaction_filter: RedactionFilter = RedactionFilter()
-    logger.addFilter(redaction_filter)
 
     stream_handler: logging.StreamHandler = logging.StreamHandler(sys.stdout)
     stream_handler.setLevel(logging.INFO)
@@ -52,6 +51,8 @@ def configure_logging() -> RedactionFilter:
     console_formatter: logging.Formatter = logging.Formatter("%(levelname)s: %(message)s")
     json_formatter: JsonFormatter = JsonFormatter()
 
+    stream_handler.addFilter(redaction_filter)
+    file_handler.addFilter(redaction_filter)
     stream_handler.setFormatter(console_formatter)
     file_handler.setFormatter(json_formatter)
 
