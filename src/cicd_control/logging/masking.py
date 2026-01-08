@@ -21,7 +21,7 @@ class RedactionFilter(Filter):
 
         secret: str
         for secret in self.secrets:
-            if secret in record.msg:
+            if record.msg.find(secret) != -1:
                 record.msg = record.msg.replace(secret, "[REDACTED]")
 
         return super().filter(record)
