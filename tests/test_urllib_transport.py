@@ -12,9 +12,7 @@ import pytest
 
 from cicd_control.urllib_transport import UrllibTransport, HttpResponse
 from cicd_control.errors import CicdDnsError, CicdTlsError, CicdConnectionError, CicdTransportError
-
-
-from conftest import MockServer
+from cicd_control.fixtures import MockServer
 
 
 def get_mock_server_url(server: MockServer) -> str:

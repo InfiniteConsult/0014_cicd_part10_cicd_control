@@ -9,7 +9,7 @@ import pytest
 from urllib.request import Request, urlopen
 
 
-from conftest import MockServer
+from cicd_control.fixtures import MockServer
 
 
 def test_mock_server_get(mock_server: MockServer, client_context: ssl.SSLContext):
